@@ -56,7 +56,7 @@ end process P_TIMEOUT;
 --------------------------------------------------
 -- instantiation et mapping du composant registres
 pgen0 : entity work.pwm(behavior)
-			generic map (8, 20000)
+			generic map (8, 100)
 			port map (clk => E_CLK,
                       rst => E_RST,
                         duty=> E_DUTY,
@@ -78,34 +78,20 @@ begin
 	--wait for clkpulse/2;
 
     -- wait for pulse output
-	wait until (E_DOUT='1');
+    E_DUTY <= "10000000";
 
-    -- wait for pulse output
-	wait until (E_DOUT='1');
+    wait for 2000 ms;
 
-    wait until (E_DOUT='1');
-    wait until (E_DOUT='1');
+    E_DUTY <= "11000000";
 
-    E_DUTY<= "10000000";
-
-    wait until (E_DOUT='1');
-
-    wait until (E_DOUT='1');
-    wait until (E_DOUT='1');
-    wait until (E_DOUT='1');
-
-    E_DUTY <= "01000000";
-
-    wait until (E_DOUT='1');
-    wait until (E_DOUT='1');
-    wait until (E_DOUT='1');
+    wait for 2000 ms;
 
     E_DUTY <= "11111111";
 
-    wait until (E_DOUT='1');
-    wait until (E_DOUT='1');
-    wait until (E_DOUT='1');
-	-- ADD NEW SEQUENCE HERE
+    wait for 2000 ms;
+    E_DUTY <= "00000000";
+
+    wait for 2000 ms;
 
 	-- LATEST COMMAND (NE PAS ENLEVER !!!)
 	wait until (E_CLK='0'); wait for clkpulse*3;

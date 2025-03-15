@@ -23,7 +23,7 @@ begin
     process(clk)
     begin
         if rising_edge(clk) then
-            duty_value <= (to_integer(unsigned(duty)) * 100)  / (2**DUTY_SIZE - 1);
+            duty_value <= (to_integer(unsigned(duty)) * 100)  / ((2**DUTY_SIZE) - 1);
         end if;
     end process;
 

@@ -61,7 +61,7 @@ end process P_TIMEOUT;
 --------------------------------------------------
 -- instantiation et mapping du composant registres
 pgen0 : entity work.BLDC(behavior)
-			generic map (8, 20000)
+			generic map (8, 10000, 1E6, 50)
 			port map (CLK => E_CLK,
                       RST => E_RST,
                         DUTY=> E_DUTY,
@@ -91,7 +91,7 @@ begin
 
     wait for 2000 ms;
 
-    E_DUTY <= "01111111";
+    E_DUTY <= "11000000";
 
     wait for 2000 ms;
 
