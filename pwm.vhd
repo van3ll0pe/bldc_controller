@@ -5,7 +5,7 @@ use ieee.numeric_std.all;
 entity PWM is
     generic(
         DUTY_SIZE : natural := 8;
-        MAX_CPT : natural := 1E6
+        MAX_CPT : natural := 20000
     );
     port(
         clk : in std_logic;

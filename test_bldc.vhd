@@ -15,11 +15,11 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 -- component definition
-entity test_pwm is
-end test_pwm;
+entity test_bldc is
+end test_bldc;
 
 -- architecture definition
-architecture behaviour of test_pwm is
+architecture behaviour of test_bldc is
 
     -- constant defintions
 	constant TIMEOUT 	: time := 25000 ms; -- simulation timeout
@@ -29,9 +29,14 @@ architecture behaviour of test_pwm is
 
     -- signal definitions
     signal E_CLK  : std_logic;
-    signal E_RST        : std_logic; -- active low
+    signal E_RST        : std_logic := '0'; -- active low
     signal E_DUTY : std_logic_vector(7 downto 0) := "11000000";
-    signal E_DOUT : std_logic := '0';
+    signal E_U : std_logic := '0';
+    signal E_V : std_logic := '0';
+    signal E_W : std_logic := '0';
+    signal E_Un : std_logic := '0';
+    signal E_Vn : std_logic := '0';
+    signal E_Wn : std_logic := '0';
 
 begin
 
@@ -55,12 +60,17 @@ end process P_TIMEOUT;
 
 --------------------------------------------------
 -- instantiation et mapping du composant registres
-pgen0 : entity work.pwm(behavior)
+pgen0 : entity work.BLDC(behavior)
 			generic map (8, 20000)
-			port map (clk => E_CLK,
-                      rst => E_RST,
-                        duty=> E_DUTY,
-                        dout => E_DOUT);
+			port map (CLK => E_CLK,
+                      RST => E_RST,
+                        DUTY=> E_DUTY,
+                        U => E_U,
+                        V => E_V, 
+                        W => E_W,  
+                        Un=> E_Un, 
+                        Vn=> E_Vn, 
+                        Wn=> E_Wn); 
 
 -----------------------------
 -- Test process
@@ -77,36 +87,20 @@ begin
 	--E_RST <= '1';
 	--wait for clkpulse/2;
 
-    -- wait for pulse output
-	wait until (E_DOUT='1');
+    E_DUTY <= "10000000";
 
-    -- wait for pulse output
-	wait until (E_DOUT='1');
+    wait for 2000 ms;
 
-    wait until (E_DOUT='1');
-    wait until (E_DOUT='1');
+    E_DUTY <= "01111111";
 
-    E_DUTY<= "10000000";
-
-    wait until (E_DOUT='1');
-
-    wait until (E_DOUT='1');
-    wait until (E_DOUT='1');
-    wait until (E_DOUT='1');
-
-    E_DUTY <= "01000000";
-
-    wait until (E_DOUT='1');
-    wait until (E_DOUT='1');
-    wait until (E_DOUT='1');
+    wait for 2000 ms;
 
     E_DUTY <= "11111111";
 
-    wait until (E_DOUT='1');
-    wait until (E_DOUT='1');
-    wait until (E_DOUT='1');
-	-- ADD NEW SEQUENCE HERE
+    wait for 2000 ms;
+    E_DUTY <= "00000000";
 
+    wait for 2000 ms;
 	-- LATEST COMMAND (NE PAS ENLEVER !!!)
 	wait until (E_CLK='0'); wait for clkpulse*3;
 	assert FALSE report "FIN DE SIMULATION" severity FAILURE;
