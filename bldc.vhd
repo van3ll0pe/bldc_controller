@@ -13,6 +13,7 @@ entity BLDC is
         DUTY: in std_logic_vector(DUTY_SIZE - 1 downto 0);
         CLK: in std_logic;
         RST: in std_logic;
+        HALL: in std_logic_vector(2 downto 0);
 
         U: out std_logic;
         V: out std_logic;
@@ -27,10 +28,13 @@ architecture behavior of BLDC is
     signal pwmU: std_logic;
     signal pwmV: std_logic;
     signal pwmW: std_logic;
+    signal pwmUN: std_logic;
+    signal pwmVN: std_logic;
+    signal pwmWN: std_logic;
     signal S_duty: std_logic_vector(DUTY_SIZE-1 downto 0);
 begin
 
-    process(CLK)
+process(CLK) --process pour gérer la vitesse progressivement
     variable cycle_count : natural range 0 to (CLK_CYCLE / MOTOR_CYCLE) - 1 := 0;
     variable duty_inc : natural range 0 to (2**DUTY_SIZE) - 1 := 0;
     variable acc : natural := 0; -- Accumulateur pour gérer les fractions
@@ -64,34 +68,67 @@ begin
     end if;
 end process;
 
-    U_pwm: entity work.pwm(behavior)
-            generic map (DUTY_SIZE=>DUTY_SIZE, MAX_CPT=> (CLK_CYCLE / PWM_CYCLE))
-            port map (clk => CLK,
-                        rst => RST,
-                        duty=> S_duty,
-                        dout => pwmU);
+U_pwm: entity work.pwm(behavior)
+        generic map (DUTY_SIZE=>DUTY_SIZE, MAX_CPT=> (CLK_CYCLE / PWM_CYCLE))
+        port map (clk => CLK,
+                    rst => RST,
+                    duty=> S_duty,
+                    dout => pwmU);
 
-    V_pwm: entity work.pwm(behavior)
-            generic map (DUTY_SIZE=>DUTY_SIZE, MAX_CPT=>(CLK_CYCLE / PWM_CYCLE))
-            port map (clk => CLK,
-                        rst => RST,
-                        duty=> S_duty,
-                        dout => pwmV);
+V_pwm: entity work.pwm(behavior)
+        generic map (DUTY_SIZE=>DUTY_SIZE, MAX_CPT=>(CLK_CYCLE / PWM_CYCLE))
+        port map (clk => CLK,
+                    rst => RST,
+                    duty=> S_duty,
+                    dout => pwmV);
 
-    W_pwm: entity work.pwm(behavior)
-            generic map (DUTY_SIZE=>DUTY_SIZE, MAX_CPT=>(CLK_CYCLE / PWM_CYCLE))
-            port map (clk => CLK,
-                        rst => RST,
-                        duty=> S_duty,
-                        dout => pwmW);
+W_pwm: entity work.pwm(behavior)
+        generic map (DUTY_SIZE=>DUTY_SIZE, MAX_CPT=>(CLK_CYCLE / PWM_CYCLE))
+        port map (clk => CLK,
+                    rst => RST,
+                    duty=> S_duty,
+                    dout => pwmW);
 
-    
-    U <= pwmU;
-    V <= pwmV;
-    W <= pwmW;
-    Un <= not pwmU;
-    Vn <= not pwmV;
-    Wn <= not pwmW;
+UN_pwm: entity work.pwm(behavior)
+        generic map (DUTY_SIZE=>DUTY_SIZE, MAX_CPT=>(CLK_CYCLE / PWM_CYCLE))
+        port map (clk => CLK,
+                    rst => RST,
+                    duty=> S_duty,
+                    dout => pwmUN);
+
+VN_pwm: entity work.pwm(behavior)
+        generic map (DUTY_SIZE=>DUTY_SIZE, MAX_CPT=>(CLK_CYCLE / PWM_CYCLE))
+        port map (clk => CLK,
+                    rst => RST,
+                    duty=> S_duty,
+                    dout => pwmVN);
+
+WN_pwm: entity work.pwm(behavior)
+        generic map (DUTY_SIZE=>DUTY_SIZE, MAX_CPT=>(CLK_CYCLE / PWM_CYCLE))
+        port map (clk => CLK,
+                    rst => RST,
+                    duty=> S_duty,
+                    dout => pwmWN);
+
+process(CLK) -- gestion des capteurs Hall qui gère aussi le décalage
+begin
+    case HALL is
+        when "001" =>
+                        U <= pwmU; Un <= '0'; V <= '0'; Vn <= pwmVn; W <= '0'; Wn <= '0';
+        when "010" =>
+                        U <= pwmU; Un <= '0'; V <= '0'; Vn <= '0'; W <= '0'; Wn <= pwmWN;
+        when "011" =>
+                        U <= '0'; Un <= '0'; V <= pwmV; Vn <= '0'; W <= '0'; Wn <= pwmWN;
+        when "100" =>
+                        U <= '0'; Un <= pwmUN; V <= pwmV; Vn <= '0'; W <= '0'; Wn <= '0';
+        when "101" =>
+                        U <= '0'; Un <= pwmUN; V <= '0'; Vn <= '0'; W <= pwmW; Wn <= '0';
+        when "110" =>
+                        U <= '0'; Un <= '0'; V <= '0'; Vn <= pwmVn; W <= pwmW; Wn <= '0';
+        when others => U <= '0'; Un <= '0'; V <= '0'; Vn <= '0'; W <= '0'; Wn <= '0'; 
+    end case;
+
+end process;
 
 
 end behavior;
