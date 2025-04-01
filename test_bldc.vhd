@@ -11,8 +11,7 @@
 ---------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
 
 -- component definition
 entity test_bldc is
@@ -22,7 +21,7 @@ end test_bldc;
 architecture behaviour of test_bldc is
 
     -- constant defintions
-	constant TIMEOUT 	: time := 25000 ms; -- simulation timeout
+	constant TIMEOUT 	: time := 8000 ms; -- simulation timeout
     constant clkpulse   : Time := 500 ns; -- 1/2 periode horloge
 
     -- types/subtypes definitions
@@ -37,6 +36,7 @@ architecture behaviour of test_bldc is
     signal E_Un : std_logic := '0';
     signal E_Vn : std_logic := '0';
     signal E_Wn : std_logic := '0';
+    signal E_HALL : std_logic_vector(2 downto 0):= "000";
 
 begin
 
@@ -70,9 +70,32 @@ pgen0 : entity work.BLDC(behavior)
                         W => E_W,  
                         Un=> E_Un, 
                         Vn=> E_Vn, 
-                        Wn=> E_Wn); 
+                        Wn=> E_Wn,
+                        HALL => E_HALL
+                        ); 
 
 -----------------------------
+
+P_HALL: process(E_Un, E_Vn, E_Wn, E_U, E_V, E_W)
+begin
+    if (E_Un = '1' and E_V = '1') or (E_W = '1' and E_Un = '1') or (E_W = '1' and E_Vn = '1') then
+        E_HALL(2) <= '1';
+    else
+        E_HALL(2) <= '0';
+    end if;
+
+    if (E_U = '1' and E_Vn = '1') or (E_U = '1' and E_Wn = '1') or (E_W = '1' and E_Vn= '1') then
+        E_HALL(1) <= '1';
+    else
+        E_HALL(1) <= '0';
+    end if;
+    if (E_Wn = '1' and E_U = '1') or (E_Wn= '1' and E_V = '1') or (E_Un = '1' and E_V = '1') then
+        E_HALL(0) <= '1';
+    else
+        E_HALL(0) <= '0';
+    end if;
+end process;
+
 -- Test process
 P_TEST: process
 begin

@@ -25,12 +25,7 @@ entity BLDC is
 end BLDC;
 
 architecture behavior of BLDC is
-    signal pwmU: std_logic;
-    signal pwmV: std_logic;
-    signal pwmW: std_logic;
-    signal pwmUN: std_logic;
-    signal pwmVN: std_logic;
-    signal pwmWN: std_logic;
+    signal Spwm : std_logic;
     signal S_duty: std_logic_vector(DUTY_SIZE-1 downto 0);
 begin
 
@@ -68,67 +63,38 @@ begin
     end if;
 end process;
 
-U_pwm: entity work.pwm(behavior)
+pwm: entity work.pwm(behavior)
         generic map (DUTY_SIZE=>DUTY_SIZE, MAX_CPT=> (CLK_CYCLE / PWM_CYCLE))
         port map (clk => CLK,
                     rst => RST,
                     duty=> S_duty,
-                    dout => pwmU);
+                    dout => Spwm);
 
-V_pwm: entity work.pwm(behavior)
-        generic map (DUTY_SIZE=>DUTY_SIZE, MAX_CPT=>(CLK_CYCLE / PWM_CYCLE))
-        port map (clk => CLK,
-                    rst => RST,
-                    duty=> S_duty,
-                    dout => pwmV);
 
-W_pwm: entity work.pwm(behavior)
-        generic map (DUTY_SIZE=>DUTY_SIZE, MAX_CPT=>(CLK_CYCLE / PWM_CYCLE))
-        port map (clk => CLK,
-                    rst => RST,
-                    duty=> S_duty,
-                    dout => pwmW);
-
-UN_pwm: entity work.pwm(behavior)
-        generic map (DUTY_SIZE=>DUTY_SIZE, MAX_CPT=>(CLK_CYCLE / PWM_CYCLE))
-        port map (clk => CLK,
-                    rst => RST,
-                    duty=> S_duty,
-                    dout => pwmUN);
-
-VN_pwm: entity work.pwm(behavior)
-        generic map (DUTY_SIZE=>DUTY_SIZE, MAX_CPT=>(CLK_CYCLE / PWM_CYCLE))
-        port map (clk => CLK,
-                    rst => RST,
-                    duty=> S_duty,
-                    dout => pwmVN);
-
-WN_pwm: entity work.pwm(behavior)
-        generic map (DUTY_SIZE=>DUTY_SIZE, MAX_CPT=>(CLK_CYCLE / PWM_CYCLE))
-        port map (clk => CLK,
-                    rst => RST,
-                    duty=> S_duty,
-                    dout => pwmWN);
 
 process(CLK) -- gestion des capteurs Hall qui gère aussi le décalage
 begin
-    case HALL is
-        when "001" =>
-                        U <= pwmU; Un <= '0'; V <= '0'; Vn <= pwmVn; W <= '0'; Wn <= '0';
-        when "010" =>
-                        U <= pwmU; Un <= '0'; V <= '0'; Vn <= '0'; W <= '0'; Wn <= pwmWN;
-        when "011" =>
-                        U <= '0'; Un <= '0'; V <= pwmV; Vn <= '0'; W <= '0'; Wn <= pwmWN;
-        when "100" =>
-                        U <= '0'; Un <= pwmUN; V <= pwmV; Vn <= '0'; W <= '0'; Wn <= '0';
-        when "101" =>
-                        U <= '0'; Un <= pwmUN; V <= '0'; Vn <= '0'; W <= pwmW; Wn <= '0';
-        when "110" =>
-                        U <= '0'; Un <= '0'; V <= '0'; Vn <= pwmVn; W <= pwmW; Wn <= '0';
-        when others => U <= '0'; Un <= '0'; V <= '0'; Vn <= '0'; W <= '0'; Wn <= '0'; 
-    end case;
-
-end process;
-
+    if rising_edge(CLK) then
+        if unsigned(DUTY) > to_unsigned(0, DUTY_SIZE) and HALL = "000" then
+            U <= '0'; Un <= '0'; V <= Spwm; Vn <= '0'; W <= '0'; Wn <= Spwm;
+        else
+            case HALL is
+                when "001" =>
+                                U <= Spwm; Un <= '0'; V <= '0'; Vn <= Spwm; W <= '0'; Wn <= '0';
+                when "010" =>
+                                U <= Spwm; Un <= '0'; V <= '0'; Vn <= '0'; W <= '0'; Wn <= Spwm;
+                when "011" =>
+                                U <= '0'; Un <= Spwm; V <= '0'; Vn <= '0'; W <= Spwm; Wn <= '0';
+                when "100" =>
+                                U <= '0'; Un <= Spwm; V <= Spwm; Vn <= '0'; W <= '0'; Wn <= '0';
+                when "101" =>
+                                U <= '0'; Un <= '0'; V <= '0'; Vn <= Spwm; W <= Spwm; Wn <= '0';
+                when "110" =>
+                                U <= '0'; Un <= '0'; V <= Spwm; Vn <= '0'; W <= '0'; Wn <= Spwm;
+                when others => U <= '0'; Un <= '0'; V <= '0'; Vn <= '0'; W <= '0'; Wn <= '0'; 
+            end case;
+        end if;
+    end if;
+    end process;
 
 end behavior;
