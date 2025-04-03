@@ -28,7 +28,7 @@ architecture behaviour of test_bldc is
 
     -- signal definitions
     signal E_CLK  : std_logic;
-    signal E_RST        : std_logic := '0'; -- active low
+    signal E_RST        : std_logic := '1'; -- active low
     signal E_DUTY : std_logic_vector(7 downto 0) := "11000000";
     signal E_U : std_logic := '0';
     signal E_V : std_logic := '0';
@@ -101,7 +101,7 @@ P_TEST: process
 begin
 
 	-- initialisations
-	E_RST <= '0';
+	E_RST <= '1';
     --E_CLK <= '0'; -- DON'T DO THAT ... guess why ???
 
 	-- sequence RESET

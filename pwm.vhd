@@ -36,7 +36,7 @@ begin
         variable counter : natural range 0 to (MAX_CPT - 1) := 0;
     begin
         if rising_edge(clk) then
-            if rst = '1' then
+            if rst = '0' then
                 counter := 0;
                 dout <= '0';
             else

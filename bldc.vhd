@@ -36,30 +36,37 @@ process(CLK) --process pour gérer la vitesse progressivement
     variable dir : boolean := true; -- true = montée, false = descente
 begin
     if rising_edge(CLK) then
-        if cycle_count = (CLK_CYCLE / MOTOR_CYCLE) / 2 - 1 then
+        if RST = '0' then
             cycle_count := 0;
-            dir := not dir;
+            duty_inc := 0;
+            dir := true;
+            acc := 0;
         else
-            cycle_count := cycle_count + 1;
-        end if;
-
-
-        acc := acc + to_integer(unsigned(DUTY));
-        if acc >= 10000 then
-            if dir then
-                if duty_inc < to_integer(unsigned(DUTY)) then
-                    duty_inc := duty_inc + 1;
-                end if;
+            if cycle_count = (CLK_CYCLE / MOTOR_CYCLE) / 2 - 1 then
+                cycle_count := 0;
+                dir := not dir;
             else
-                if duty_inc > 0 then
-                    duty_inc := duty_inc - 1;
-                end if;
+                cycle_count := cycle_count + 1;
             end if;
-            acc := acc - 10000;
-        end if;
 
-        -- Convertir en std_logic_vector
-        S_duty <= std_logic_vector(to_unsigned(duty_inc, DUTY_SIZE));
+
+            acc := acc + to_integer(unsigned(DUTY));
+            if acc >= 10000 then
+                if dir then
+                    if duty_inc < to_integer(unsigned(DUTY)) then
+                        duty_inc := duty_inc + 1;
+                    end if;
+                else
+                    if duty_inc > 0 then
+                        duty_inc := duty_inc - 1;
+                    end if;
+                end if;
+                acc := acc - 10000;
+            end if;
+
+            -- Convertir en std_logic_vector
+            S_duty <= std_logic_vector(to_unsigned(duty_inc, DUTY_SIZE));
+        end if;
     end if;
 end process;
 
@@ -75,24 +82,28 @@ pwm: entity work.pwm(behavior)
 process(CLK) -- gestion des capteurs Hall qui gère aussi le décalage
 begin
     if rising_edge(CLK) then
-        if unsigned(DUTY) > to_unsigned(0, DUTY_SIZE) and HALL = "000" then
-            U <= '0'; Un <= '0'; V <= Spwm; Vn <= '0'; W <= '0'; Wn <= Spwm;
+        if RST = '0' then
+            U <= '0'; Un <= '0'; V <= '0'; Vn <= '0'; W <= '0'; Wn <= '0'; 
         else
-            case HALL is
-                when "001" =>
-                                U <= Spwm; Un <= '0'; V <= '0'; Vn <= Spwm; W <= '0'; Wn <= '0';
-                when "010" =>
-                                U <= Spwm; Un <= '0'; V <= '0'; Vn <= '0'; W <= '0'; Wn <= Spwm;
-                when "011" =>
-                                U <= '0'; Un <= Spwm; V <= '0'; Vn <= '0'; W <= Spwm; Wn <= '0';
-                when "100" =>
-                                U <= '0'; Un <= Spwm; V <= Spwm; Vn <= '0'; W <= '0'; Wn <= '0';
-                when "101" =>
-                                U <= '0'; Un <= '0'; V <= '0'; Vn <= Spwm; W <= Spwm; Wn <= '0';
-                when "110" =>
-                                U <= '0'; Un <= '0'; V <= Spwm; Vn <= '0'; W <= '0'; Wn <= Spwm;
-                when others => U <= '0'; Un <= '0'; V <= '0'; Vn <= '0'; W <= '0'; Wn <= '0'; 
-            end case;
+            if unsigned(DUTY) > to_unsigned(0, DUTY_SIZE) and HALL = "000" then
+                U <= '0'; Un <= '0'; V <= Spwm; Vn <= '0'; W <= '0'; Wn <= Spwm;
+            else
+                case HALL is
+                    when "001" =>
+                                    U <= Spwm; Un <= '0'; V <= '0'; Vn <= Spwm; W <= '0'; Wn <= '0';
+                    when "010" =>
+                                    U <= Spwm; Un <= '0'; V <= '0'; Vn <= '0'; W <= '0'; Wn <= Spwm;
+                    when "011" =>
+                                    U <= '0'; Un <= Spwm; V <= '0'; Vn <= '0'; W <= Spwm; Wn <= '0';
+                    when "100" =>
+                                    U <= '0'; Un <= Spwm; V <= Spwm; Vn <= '0'; W <= '0'; Wn <= '0';
+                    when "101" =>
+                                    U <= '0'; Un <= '0'; V <= '0'; Vn <= Spwm; W <= Spwm; Wn <= '0';
+                    when "110" =>
+                                    U <= '0'; Un <= '0'; V <= Spwm; Vn <= '0'; W <= '0'; Wn <= Spwm;
+                    when others => U <= '0'; Un <= '0'; V <= '0'; Vn <= '0'; W <= '0'; Wn <= '0'; 
+                end case;
+            end if;
         end if;
     end if;
     end process;
