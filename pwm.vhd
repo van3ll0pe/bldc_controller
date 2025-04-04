@@ -17,7 +17,7 @@ end PWM;
 
 architecture behavior of PWM is
     signal duty_value : natural range 0 to 100 := 0;
-    signal nbr_count : natural range 0 to MAX_CPT := 0;
+    signal nbr_count : natural range 0 to (MAX_CPT-1) := 0;
 begin
 
     process(clk)
@@ -29,7 +29,9 @@ begin
 
     process(clk)
     begin
-        nbr_count <= (duty_value * MAX_CPT) / 100;
+        if rising_edge(clk) then
+            nbr_count <= (duty_value * MAX_CPT) / 100;
+        end if;
     end process;
 
     process(clk, rst)

@@ -37,6 +37,7 @@ architecture behaviour of test_bldc is
     signal E_Vn : std_logic := '0';
     signal E_Wn : std_logic := '0';
     signal E_HALL : std_logic_vector(2 downto 0):= "000";
+    signal E_DUTY_U : natural := 0;
 
 begin
 
@@ -64,37 +65,18 @@ pgen0 : entity work.BLDC(behavior)
 			generic map (8, 10000, 1E6, 50)
 			port map (CLK => E_CLK,
                       RST => E_RST,
-                        DUTY=> E_DUTY,
+                        DUTY_IN=> E_DUTY,
                         U => E_U,
                         V => E_V, 
                         W => E_W,  
                         Un=> E_Un, 
                         Vn=> E_Vn, 
                         Wn=> E_Wn,
-                        HALL => E_HALL
+                        duty_u_out => E_DUTY_U
                         ); 
 
 -----------------------------
 
-P_HALL: process(E_Un, E_Vn, E_Wn, E_U, E_V, E_W)
-begin
-    if (E_Un = '1' and E_V = '1') or (E_W = '1' and E_Un = '1') or (E_W = '1' and E_Vn = '1') then
-        E_HALL(2) <= '1';
-    else
-        E_HALL(2) <= '0';
-    end if;
-
-    if (E_U = '1' and E_Vn = '1') or (E_U = '1' and E_Wn = '1') or (E_W = '1' and E_Vn= '1') then
-        E_HALL(1) <= '1';
-    else
-        E_HALL(1) <= '0';
-    end if;
-    if (E_Wn = '1' and E_U = '1') or (E_Wn= '1' and E_V = '1') or (E_Un = '1' and E_V = '1') then
-        E_HALL(0) <= '1';
-    else
-        E_HALL(0) <= '0';
-    end if;
-end process;
 
 -- Test process
 P_TEST: process
