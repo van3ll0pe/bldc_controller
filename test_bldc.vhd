@@ -37,7 +37,7 @@ architecture behaviour of test_bldc is
     signal E_Vn : std_logic := '0';
     signal E_Wn : std_logic := '0';
     signal E_HALL : std_logic_vector(2 downto 0):= "000";
-    signal E_DUTY_U : natural := 0;
+    signal E_EN: std_logic;
 
 begin
 
@@ -61,18 +61,18 @@ end process P_TIMEOUT;
 
 --------------------------------------------------
 -- instantiation et mapping du composant registres
-pgen0 : entity work.BLDC(behavior)
+pgen0 : entity work.BLDC_project
 			generic map (8, 10000, 1E6, 50)
 			port map (CLK => E_CLK,
                       RST => E_RST,
-                        DUTY_IN=> E_DUTY,
+                        DUTY=> E_DUTY,
                         U => E_U,
                         V => E_V, 
                         W => E_W,  
                         Un=> E_Un, 
                         Vn=> E_Vn, 
                         Wn=> E_Wn,
-                        duty_u_out => E_DUTY_U
+                        EN => E_EN
                         ); 
 
 -----------------------------
@@ -84,6 +84,7 @@ begin
 
 	-- initialisations
 	E_RST <= '1';
+    E_EN <= '1';
     --E_CLK <= '0'; -- DON'T DO THAT ... guess why ???
 
 	-- sequence RESET
@@ -94,18 +95,18 @@ begin
 
     E_DUTY <= "10000000";
 
-    wait for 2000 ms;
+    wait for 1000 ms;
 
     E_DUTY <= "11000000";
 
-    wait for 2000 ms;
+    wait for 1000 ms;
 
     E_DUTY <= "11111111";
 
-    wait for 2000 ms;
+    wait for 1000 ms;
     E_DUTY <= "00000000";
 
-    wait for 2000 ms;
+    wait for 1000 ms;
 	-- LATEST COMMAND (NE PAS ENLEVER !!!)
 	wait until (E_CLK='0'); wait for clkpulse*3;
 	assert FALSE report "FIN DE SIMULATION" severity FAILURE;

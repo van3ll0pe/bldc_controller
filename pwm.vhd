@@ -20,21 +20,12 @@ architecture behavior of PWM is
     signal nbr_count : natural range 0 to (MAX_CPT-1) := 0;
 begin
 
-    process(clk)
-    begin
-        if rising_edge(clk) then
-            duty_value <= (to_integer(unsigned(duty)) * 100)  / ((2**DUTY_SIZE) - 1);
-        end if;
-    end process;
 
-    process(clk)
-    begin
-        if rising_edge(clk) then
-            nbr_count <= (duty_value * MAX_CPT) / 100;
-        end if;
-    end process;
+    duty_value <= (to_integer(unsigned(duty)) * 100)  / ((2**DUTY_SIZE) - 1);
+    nbr_count <= (duty_value * MAX_CPT) / 100;
 
-    process(clk, rst)
+
+    process(clk, rst, duty_value, nbr_count)
         variable counter : natural range 0 to (MAX_CPT - 1) := 0;
     begin
         if rising_edge(clk) then
